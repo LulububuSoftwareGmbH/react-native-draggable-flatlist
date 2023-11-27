@@ -292,18 +292,23 @@ function DraggableFlatListInner<T>(props: DraggableFlatListProps<T>) {
       if (activeIndexAnim.value === -1 || disabled.value) return;
       disabled.value = true;
       runOnJS(onRelease)(activeIndexAnim.value);
-      const springTo = placeholderOffset.value - activeCellOffset.value;
-      touchTranslate.value = withSpring(
-        springTo,
-        animationConfigRef.current,
-        () => {
-          runOnJS(onDragEnd)({
-            from: activeIndexAnim.value,
-            to: spacerIndexAnim.value,
-          });
-          disabled.value = false;
-        }
-      );
+      const runOnDragEnd = () => {
+        runOnJS(onDragEnd)({
+          from: activeIndexAnim.value,
+          to: spacerIndexAnim.value,
+        });
+        disabled.value = false;
+      };
+      if (props.renderPlaceholder) {
+        const springTo = placeholderOffset.value - activeCellOffset.value;
+        touchTranslate.value = withSpring(
+            springTo,
+            animationConfigRef.current,
+            runOnDragEnd
+        );
+      } else {
+        runOnDragEnd();
+      }
     })
     .onTouchesDown(() => {
       runOnJS(onContainerTouchStart)();
